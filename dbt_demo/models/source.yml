@@ -1,0 +1,20 @@
+version: 2
+
+sources:
+  - name: demo
+    database: dwh
+    schema: demo
+    tables:
+      - name: customers
+        columns:
+          - name: customer_id
+            tests:
+              - not_null
+        tags: ['source', 'customers']
+
+      - name: loans
+        columns:
+          - name: loan_id
+            tests:
+              - not_null
+        tags: ['source', 'loans'] 

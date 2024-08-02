@@ -1,0 +1,8 @@
+dbt-core==1.7.10
+dbt-postgres==1.7.10
+pandas==2.2.2
+numpy==1.26.4
+psycopg2-binary==2.9.9
+Faker==25.0.1
+s3fs==2024.3.1
+pyarrow==16.0.0

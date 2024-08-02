@@ -1,0 +1,45 @@
+semantic_models:
+  - name: customers
+    defaults:
+      agg_time_dimension: most_recent_loan_date
+    description: |
+      semantic model for dim_customers
+    model: ref('dim_customers')
+    entities:
+      - name: customer
+        expr: customer_id
+        type: primary
+
+    dimensions:
+      - name: customer_name
+        type: categorical
+        expr: name
+      - name: first_loan_date
+        type: time
+        type_params:
+          time_granularity: day
+      - name: most_recent_loan_date
+        type: time
+        type_params:
+          time_granularity: day
+
+    measures:
+      - name: count_lifetime_loans
+        description: Total count of orders per customer.
+        agg: sum
+        expr: number_of_loans
+      - name: lifetime_loan
+        agg: sum
+        expr: lifetime_value
+        description: Gross customer lifetime loan inclusive of taxes.
+      - name: customers
+        expr: customer_id
+        agg: count_distinct
+
+metrics:
+  - name: "customers_with_loans"
+    label: "customers with loans"
+    description: "Unique count of customers having loans"
+    type: simple
+    type_params:
+      measure: customers

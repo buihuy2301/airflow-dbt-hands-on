@@ -1,0 +1,104 @@
+semantic_models:
+  - name: loans
+    defaults:
+      agg_time_dimension: start_date
+    description: |
+      Loans fact table. This table’s grain is one row per loan.
+    model: ref('stg_loans')
+    entities:
+      - name: loan_id
+        type: primary
+      - name: customer_id
+        type: foreign  
+
+    dimensions:   
+      - name: start_date
+        type: time
+        type_params:
+          time_granularity: day
+
+    measures:   
+      - name: loan_total
+        description: The total amount for each order including taxes.
+        agg: sum
+        expr: loan_amount
+      - name: loan_count
+        expr: 1
+        agg: sum
+      - name: customers_with_loans
+        description: Distinct count of customers placing orders
+        agg: count_distinct
+        expr: customer_id
+      - name: loan_value_p99 ## The 99th percentile order value
+        expr: loan_amount
+        agg: percentile
+        agg_params:
+          percentile: 0.99
+          use_discrete_percentile: True
+          use_approximate_percentile: False
+
+metrics: 
+  # Simple type metrics
+  - name: "loan_total"
+    description: "Sum of loan amount"
+    type: simple
+    label: "Loan Total"
+    type_params:
+      measure: loan_total
+    config:
+      group: 'finance'
+
+  - name: "loan_count"
+    description: "number of loans"
+    type: simple
+    label: "Loan Count"
+    type_params:
+      measure: loan_count
+    config:
+      group: 'finance'
+
+  - name: large_loans
+    description: "Count of loans with order total over 20000."
+    type: simple
+    label: "Large Loans"
+    type_params:
+      measure: loan_count
+    filter: |
+      {{ Dimension('loan_id__loan_total_dim') }} >= 20
+    config:
+      group: 'finance'
+
+  # Ratio type metric
+  - name: "avg_loan_value"
+    label: "Avg Loan Value"
+    description: "average value of each loan"
+    type: ratio
+    type_params:
+      numerator: loan_total
+      denominator: loan_count
+    config:
+      group: 'finance'
+
+  # Cumulative type metrics
+  - name: "cumulative_loan_amount_mtd"
+    label: "Cumulative Loan Amount Mtd"
+    description: "The month to date value of all orders"
+    type: cumulative
+    type_params:
+      measure: loan_total
+      grain_to_date: month
+    config:
+      group: 'finance'
+
+  # Derived metric
+  - name: "pct_of_loans_that_are_large"
+    label: "Pct of loans that are large"
+    description: "percent of loans that are large"
+    type: derived
+    type_params:
+      expr: large_loans/loan_count
+      metrics:
+        - name: large_loans
+        - name: loan_count
+    config:
+      group: 'finance'

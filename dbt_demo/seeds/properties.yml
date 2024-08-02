@@ -1,0 +1,11 @@
+version: 2
+
+seeds:
+  - name: branchs
+    docs:
+      show: true
+      node_color: purple
+    config:
+      column_types:
+        branch_code: varchar(5)
+        branch_name: varchar(100)

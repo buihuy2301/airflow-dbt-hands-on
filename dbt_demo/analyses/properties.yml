@@ -1,0 +1,9 @@
+version: 2
+
+analyses:
+  - name: running_loan_total_of_branhs_by_start_date
+    docs:
+      show: true
+      node_color: red
+    config:
+      tags: ['loans', 'finance']

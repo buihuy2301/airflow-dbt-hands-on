@@ -1,0 +1,90 @@
+version: 2
+
+models:
+################################ Staging models ################################
+  - name: stg_customers
+    config:
+      materialized: table
+      tags: ['staging', 'customers']
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+      - name: income
+        tests:
+          - is_positive
+
+  - name: stg_loans
+    config:
+      materialized: table
+      group: finance
+      tags: ['staging', 'loans']    
+    columns:
+      - name: loan_id
+        tests:
+          - not_null
+      - name: customer_id
+        tests:
+          - not_null
+
+################################ Marts models ################################
+  - name: dim_customers
+    config:
+      materialized: table
+      tags: ['marts', 'customers']
+    columns:
+      - name: customer_id
+        tests:
+          - not_null
+  
+  - name: fct_loans
+    config:
+      materialized: incremental
+      incremental_strategy:  append
+      incremental_predicates: ["DBT_INTERNAL_DEST.start_date > dateadd(day, -7, current_date)"]
+      group: finance
+      tags: ['marts', 'loans']
+    columns:
+      - name: loan_id
+        tests:
+          - not_null
+      - name: customer_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_customers')
+              field: customer_id
+
+
+  - name:  pre_aggregated_loans
+    config:
+      materialized: ephemeral
+      group: finance
+      tags: ['marts', 'loans']
+
+
+
+groups:
+  - name: finance
+    owner:
+      # 'name' or 'email' is required; additional properties allowed
+      email: finance@demo.com
+      slack: finance-data
+      github: finance-data-team
+
+exposures:
+  - name: loans_dashboard
+    label: Loans Dashboard
+    type: dashboard
+    maturity: high
+    url: https://bi.tool/dashboards/1
+    description: >
+      ...
+
+    depends_on:
+      - ref('fct_loans')
+      - ref('dim_customers')
+
+    owner:
+      name: Data Team
+      email: data@example.com

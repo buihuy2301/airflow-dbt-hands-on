@@ -1,0 +1,9 @@
+version: 2
+
+snapshots:
+  - name: customers_snapshot
+    config:
+      tags: ['customers']
+    docs:
+      show: true
+      node_color: "orange" 
